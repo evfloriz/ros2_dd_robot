@@ -26,43 +26,59 @@
 namespace dd_hardware_interface {
 
 hardware_interface::CallbackReturn DDHardwareInterface::on_init(const hardware_interface::HardwareInfo & info) {
-  return CallbackReturn::SUCCESS;
+    if (hardware_interface::SystemInterface::on_init(info) != CallbackReturn::SUCCESS) {
+        return CallbackReturn::ERROR;
+    }
+    return CallbackReturn::SUCCESS;
 }
 
 hardware_interface::CallbackReturn DDHardwareInterface::on_configure(const rclcpp_lifecycle::State & /*previous_state*/) {
-  return CallbackReturn::SUCCESS;
+    return CallbackReturn::SUCCESS;
 }
 
 std::vector<hardware_interface::StateInterface> DDHardwareInterface::export_state_interfaces() {
-  std::vector<hardware_interface::StateInterface> state_interfaces;
-  
-  return state_interfaces;
+    std::vector<hardware_interface::StateInterface> state_interfaces;
+
+    state_interfaces.emplace_back(hardware_interface::StateInterface(info_.joints[0].name, hardware_interface::HW_IF_VELOCITY, &l_wheel_vel));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(info_.joints[0].name, hardware_interface::HW_IF_POSITION, &l_wheel_pos));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(info_.joints[1].name, hardware_interface::HW_IF_VELOCITY, &r_wheel_vel));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(info_.joints[1].name, hardware_interface::HW_IF_POSITION, &r_wheel_pos));
+
+    return state_interfaces;
 }
 
 std::vector<hardware_interface::CommandInterface> DDHardwareInterface::export_command_interfaces() {
-  std::vector<hardware_interface::CommandInterface> command_interfaces;
+    std::vector<hardware_interface::CommandInterface> command_interfaces;
 
-  return command_interfaces;
+    command_interfaces.emplace_back(hardware_interface::CommandInterface(info_.joints[0].name, hardware_interface::HW_IF_VELOCITY, &l_wheel_cmd));
+    command_interfaces.emplace_back(hardware_interface::CommandInterface(info_.joints[1].name, hardware_interface::HW_IF_VELOCITY, &r_wheel_cmd));
+
+    return command_interfaces;
 }
 
 hardware_interface::CallbackReturn DDHardwareInterface::on_activate(const rclcpp_lifecycle::State & /*previous_state*/) {
-  return CallbackReturn::SUCCESS;
+    return CallbackReturn::SUCCESS;
 }
 
 hardware_interface::CallbackReturn DDHardwareInterface::on_deactivate(const rclcpp_lifecycle::State & /*previous_state*/) {
-  return CallbackReturn::SUCCESS;
+    return CallbackReturn::SUCCESS;
 }
 
 hardware_interface::CallbackReturn DDHardwareInterface::on_shutdown(const rclcpp_lifecycle::State & /*previous_state*/) {
-  return CallbackReturn::SUCCESS;
+    return CallbackReturn::SUCCESS;
 }
 
 hardware_interface::return_type DDHardwareInterface::read(const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/) {
-  return hardware_interface::return_type::OK;
+    // dummy values
+    rpicomms.read(l_wheel_vel, l_wheel_pos, r_wheel_vel, r_wheel_pos);
+    
+    return hardware_interface::return_type::OK;
 }
 
 hardware_interface::return_type DDHardwareInterface::write(const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/) {
-  return hardware_interface::return_type::OK;
+    rpicomms.write(l_wheel_cmd, r_wheel_cmd);
+    
+    return hardware_interface::return_type::OK;
 }
 
 }  // namespace dd_hardware_interface
@@ -70,4 +86,4 @@ hardware_interface::return_type DDHardwareInterface::write(const rclcpp::Time & 
 #include "pluginlib/class_list_macros.hpp"
 
 PLUGINLIB_EXPORT_CLASS(
-  dd_hardware_interface::DDHardwareInterface, hardware_interface::SystemInterface)
+    dd_hardware_interface::DDHardwareInterface, hardware_interface::SystemInterface)

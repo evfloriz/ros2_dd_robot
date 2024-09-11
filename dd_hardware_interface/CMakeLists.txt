@@ -18,6 +18,7 @@ add_library(
   dd_hardware_interface
   SHARED
   src/dd_hardware_interface.cpp
+  src/rpi_comms.cpp
 )
 
 target_include_directories(
