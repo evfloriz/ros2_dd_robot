@@ -12,8 +12,6 @@ namespace dd_hardware_interface {
 class DDHardwareInterface : public hardware_interface::SystemInterface {
 
 public:
-  
-  DDHardwareInterface();
 
   hardware_interface::CallbackReturn on_init(const hardware_interface::HardwareInfo & info) override;
 
