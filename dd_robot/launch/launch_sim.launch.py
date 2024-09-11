@@ -11,8 +11,7 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
 
-    # Check if we're told to use sim time
-    package_name = 'ros2_dd_robot'
+    package_name = 'dd_robot'
 
     rsp = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([os.path.join(
