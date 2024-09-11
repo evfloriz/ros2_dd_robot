@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(dd_hardware)
+project(dd_hardware_interface)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -9,16 +9,40 @@ endif()
 find_package(ament_cmake REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
-# find_package(<dependency> REQUIRED)
+find_package(hardware_interface REQUIRED)
+find_package(pluginlib REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(rclcpp_lifecycle REQUIRED)
 
-add_executable(my_node src/my_node.cpp)
-target_include_directories(my_node PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>)
-target_compile_features(my_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+add_library(
+  dd_hardware_interface
+  SHARED
+  src/dd_hardware_interface.cpp
+)
 
-install(TARGETS my_node
-  DESTINATION lib/${PROJECT_NAME})
+target_include_directories(
+  dd_hardware_interface
+  PUBLIC
+  include
+)
+
+ament_target_dependencies(
+  dd_hardware_interface
+  hardware_interface
+  rclcpp
+  rclcpp_lifecycle
+)
+
+pluginlib_export_plugin_description_file(
+  hardware_interface dd_hardware_interface.xml)
+
+install(
+  TARGETS
+  dd_hardware_interface
+  RUNTIME DESTINATION bin
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

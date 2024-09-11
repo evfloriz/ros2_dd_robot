@@ -1,0 +1,9 @@
+<library path="dd_hardware_interface">
+  <class name="dd_hardware_interface/DDHardwareInterface"
+         type="dd_hardware_interface::DDHardwareInterface"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>
+      Hardware interface for differential drive robot.
+    </description>
+  </class>
+</library>
