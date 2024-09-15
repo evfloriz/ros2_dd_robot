@@ -34,6 +34,16 @@ RUN apt-get update \
     ros-humble-ros2-controllers \
     && rm -rf /var/lib/apt/lists/*
 
+ARG SIM=false
+RUN if [ "$SIM" = "true" ]; then \
+    apt-get update \
+    && apt-get install -y \
+    ros-humble-ros-gz \
+    ros-humble-ign-ros2-control \
+    ros-humble-teleop-twist-keyboard \
+    && rm -rf /var/lib/apt/lists/*; \
+fi
+
 # add pigpio
 RUN wget http://archive.raspberrypi.org/debian/raspberrypi.gpg.key \
     && mv raspberrypi.gpg.key /etc/apt/keyrings \
