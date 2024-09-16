@@ -19,6 +19,8 @@
 #include <memory>
 #include <vector>
 
+#include <pigpiod_if2.h>
+
 #include "dd_hardware_interface/dd_hardware_interface.hpp"
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "rclcpp/rclcpp.hpp"
@@ -29,6 +31,14 @@ hardware_interface::CallbackReturn DDHardwareInterface::on_init(const hardware_i
     if (hardware_interface::SystemInterface::on_init(info) != CallbackReturn::SUCCESS) {
         return CallbackReturn::ERROR;
     }
+
+    RCLCPP_INFO(rclcpp::get_logger("DDHardwareInterface"), "Initializing...");
+
+    // Initialize rpicomms
+    if (rpicomms.init() < 0) {
+        return CallbackReturn::ERROR;
+    }
+
     return CallbackReturn::SUCCESS;
 }
 
@@ -65,18 +75,28 @@ hardware_interface::CallbackReturn DDHardwareInterface::on_deactivate(const rclc
 }
 
 hardware_interface::CallbackReturn DDHardwareInterface::on_shutdown(const rclcpp_lifecycle::State & /*previous_state*/) {
+    // Shutdown rpicomms
+    rpicomms.shutdown();
+
+    RCLCPP_INFO(rclcpp::get_logger("DDHardwareInterface"), "Shutting down...");
+
     return CallbackReturn::SUCCESS;
 }
 
 hardware_interface::return_type DDHardwareInterface::read(const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/) {
-    // dummy values
     rpicomms.read(l_wheel_vel, l_wheel_pos, r_wheel_vel, r_wheel_pos);
+
+    //RCLCPP_INFO(rclcpp::get_logger("DDHardwareInterface"), "Got position state %.5f and velocity state %.5f for '%s'!", l_wheel_pos, l_wheel_vel, info_.joints[0].name.c_str());
+    //RCLCPP_INFO(rclcpp::get_logger("DDHardwareInterface"), "Got position state %.5f and velocity state %.5f for '%s'!", r_wheel_pos, r_wheel_vel, info_.joints[1].name.c_str());
     
     return hardware_interface::return_type::OK;
 }
 
 hardware_interface::return_type DDHardwareInterface::write(const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/) {
     rpicomms.write(l_wheel_cmd, r_wheel_cmd);
+
+    //RCLCPP_INFO(rclcpp::get_logger("DDHardwareInterface"), "Got command %.5f for '%s'!", l_wheel_cmd, info_.joints[0].name.c_str());
+    //RCLCPP_INFO(rclcpp::get_logger("DDHardwareInterface"), "Got command %.5f for '%s'!", r_wheel_cmd, info_.joints[1].name.c_str());
     
     return hardware_interface::return_type::OK;
 }

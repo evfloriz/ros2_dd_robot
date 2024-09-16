@@ -27,6 +27,11 @@ target_include_directories(
   include
 )
 
+target_link_libraries(
+  dd_hardware_interface
+  pigpiod_if2
+)
+
 ament_target_dependencies(
   dd_hardware_interface
   hardware_interface
