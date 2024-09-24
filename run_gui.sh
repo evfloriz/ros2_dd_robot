@@ -11,4 +11,3 @@ docker container run -it --user=$ROSUSER --network=host --ipc=host \
     --env=DISPLAY \
     -v "/tmp/.X11-unix:/tmp/.X11-unix:rw" \
     ros2-dd-image-gui
-    

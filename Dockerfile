@@ -1,13 +1,15 @@
 #FROM osrf/ros:humble-desktop           for gui, doesn't work on rpi because its only for amd64
 FROM ros:humble
 
-# add raspberry pi os to source list
+# arg to determine which packages to download
+ARG GUI=false
 
 # set up packages
 RUN apt-get update \
     && apt-get install -y \
     nano \
     wget \
+    v4l-utils \
     && rm -rf /var/lib/apt/lists/*
 
 ARG USERNAME=ros
@@ -35,8 +37,8 @@ RUN apt-get update \
     ros-humble-teleop-twist-keyboard \
     && rm -rf /var/lib/apt/lists/*
 
-ARG SIM=false
-RUN if [ "$SIM" = "true" ]; then \
+# install ROS2 packages for sim and gui
+RUN if [ "$GUI" = "true" ]; then \
     apt-get update \
     && apt-get install -y \
     ros-humble-ros-gz \
@@ -44,13 +46,31 @@ RUN if [ "$SIM" = "true" ]; then \
     && rm -rf /var/lib/apt/lists/*; \
 fi
 
-# add pigpio
-RUN wget http://archive.raspberrypi.org/debian/raspberrypi.gpg.key \
+# install raspberry pi packages
+# copy debian keys from local raspberry pi
+# TODO: need to change this to grab from the official source
+COPY keys/* /etc/apt/trusted.gpg.d/
+
+# set the apt pkg source list to raspberry pi sources, download, then switch back
+RUN if [ "$GUI" = "false" ]; then \
+    mv /etc/apt/sources.list /etc/apt/temp \
+    && wget http://archive.raspberrypi.org/debian/raspberrypi.gpg.key \
     && mv raspberrypi.gpg.key /etc/apt/keyrings \
     && echo "deb [signed-by=/etc/apt/keyrings/raspberrypi.gpg.key] http://archive.raspberrypi.org/debian/ bookworm main" >> /etc/apt/sources.list \
+    && echo "deb http://deb.debian.org/debian bookworm main contrib non-free non-free-firmware" >> /etc/apt/sources.list \
+    && echo "deb http://deb.debian.org/debian-security/ bookworm-security main contrib non-free non-free-firmware" >> /etc/apt/sources.list \
+    && echo "deb http://deb.debian.org/debian bookworm-updates main contrib non-free non-free-firmware" >> /etc/apt/sources.list \
     && apt-get update \
-    && apt-get install -y pigpio \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get install -y \
+    pigpio \
+    rpicam-apps-lite \
+    && rm -rf /var/lib/apt/lists/* \
+    && mv /etc/apt/sources.list /etc/apt/rpisources.list \
+    && mv /etc/apt/temp /etc/apt/sources.list; \
+fi
+
+    
+RUN usermod -aG video ${USERNAME}
 
 COPY entrypoint.sh /entrypoint.sh
 COPY bashrc /home/${USERNAME}/.bashrc
