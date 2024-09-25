@@ -126,3 +126,6 @@ export ROS_LOCALHOST_ONLY=0
 
 # source camera_ros
 source /home/ros/camera_ws/install/setup.bash
+
+# start pigpio daemon (using sudo but user ros has NOPASSWD)
+sudo pigpiod

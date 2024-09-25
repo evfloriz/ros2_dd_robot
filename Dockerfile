@@ -46,9 +46,7 @@ RUN if [ "$GUI" = "true" ]; then \
     && rm -rf /var/lib/apt/lists/*; \
 fi
 
-# install raspberry pi packages from source
-
-# install camera_ros
+# install camera_ros (including libcamera)
 ARG CAMERA_WS=/home/${USERNAME}/camera_ws
 RUN if [ "$GUI" = "false" ]; then \
     apt-get update \
@@ -62,6 +60,17 @@ RUN if [ "$GUI" = "false" ]; then \
     && rm -rf /var/lib/apt/lists/*; \
 fi
 
+# install pigpio
+ARG PIGPIO_DIR=/home/${USERNAME}
+RUN if [ "$GUI" = "false" ]; then \
+    apt-get update \
+    && apt-get install -y unzip python-setuptools python3-setuptools \
+    && wget https://github.com/joan2937/pigpio/archive/master.zip -P ${PIGPIO_DIR} \
+    && unzip ${PIGPIO_DIR}/master.zip -d ${PIGPIO_DIR} \
+    && make -C ${PIGPIO_DIR}/pigpio-master \
+    && make install -C ${PIGPIO_DIR}/pigpio-master \
+    && rm -rf /var/lib/apt/lists/*; \
+fi
     
 RUN usermod -aG video ${USERNAME}
 

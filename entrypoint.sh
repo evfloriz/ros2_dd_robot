@@ -2,6 +2,4 @@
 
 set -e
 
-#sudo pigpiod
-
 exec $@
