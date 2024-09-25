@@ -46,27 +46,20 @@ RUN if [ "$GUI" = "true" ]; then \
     && rm -rf /var/lib/apt/lists/*; \
 fi
 
-# install raspberry pi packages
-# copy debian keys from local raspberry pi
-# TODO: need to change this to grab from the official source
-COPY keys/* /etc/apt/trusted.gpg.d/
+# install raspberry pi packages from source
 
-# set the apt pkg source list to raspberry pi sources, download, then switch back
+# install camera_ros
+ARG CAMERA_WS=/home/${USERNAME}/camera_ws
 RUN if [ "$GUI" = "false" ]; then \
-    mv /etc/apt/sources.list /etc/apt/temp \
-    && wget http://archive.raspberrypi.org/debian/raspberrypi.gpg.key \
-    && mv raspberrypi.gpg.key /etc/apt/keyrings \
-    && echo "deb [signed-by=/etc/apt/keyrings/raspberrypi.gpg.key] http://archive.raspberrypi.org/debian/ bookworm main" >> /etc/apt/sources.list \
-    && echo "deb http://deb.debian.org/debian bookworm main contrib non-free non-free-firmware" >> /etc/apt/sources.list \
-    && echo "deb http://deb.debian.org/debian-security/ bookworm-security main contrib non-free non-free-firmware" >> /etc/apt/sources.list \
-    && echo "deb http://deb.debian.org/debian bookworm-updates main contrib non-free non-free-firmware" >> /etc/apt/sources.list \
-    && apt-get update \
-    && apt-get install -y \
-    pigpio \
-    rpicam-apps-lite \
-    && rm -rf /var/lib/apt/lists/* \
-    && mv /etc/apt/sources.list /etc/apt/rpisources.list \
-    && mv /etc/apt/temp /etc/apt/sources.list; \
+    apt-get update \
+    && apt-get install -y pkg-config python3-yaml python3-ply python3-jinja2 openssl libyaml-dev libssl-dev libudev-dev libatomic1 meson \
+    && mkdir -p ${CAMERA_WS} \
+    && git clone https://github.com/christianrauch/camera_ros.git ${CAMERA_WS}/src/camera_ros \
+    && . /opt/ros/humble/setup.sh \
+    && rosdep update \
+    && rosdep install --from-paths ${CAMERA_WS}/src --ignore-src -y \
+    && colcon build --base-paths ${CAMERA_WS} --build-base ${CAMERA_WS}/build --install-base ${CAMERA_WS}/install \
+    && rm -rf /var/lib/apt/lists/*; \
 fi
 
     

@@ -2,6 +2,6 @@
 
 set -e
 
-sudo pigpiod
+#sudo pigpiod
 
 exec $@

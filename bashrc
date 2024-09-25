@@ -123,3 +123,6 @@ source /usr/share/colcon_argcomplete/hook/colcon-argcomplete.bash
 
 export ROS_DOMAIN_ID=13
 export ROS_LOCALHOST_ONLY=0
+
+# source camera_ros
+source /home/ros/camera_ws/install/setup.bash
