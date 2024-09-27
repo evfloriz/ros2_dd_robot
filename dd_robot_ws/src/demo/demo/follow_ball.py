@@ -13,22 +13,23 @@ class MovementHandler(Node):
 
     def __init__(self):
         super().__init__('movement_handler')
-        self.publisher_ = self.create_publisher(Twist, '/diff_cont/cmd_vel_unstamped', 10)
+        self.publisher_ = self.create_publisher(Twist, '/diff_cont/cmd_vel_unstamped', 1)
 
         self.subsciber = self.create_subscription(
             Image,
             '/camera/image_raw',
             self.image_callback,
-            10)
+            1)
         
-        self.cv_pub = self.create_publisher(Image, '/cv_compressed', 10)
+        #self.cv_pub_compressed = self.create_publisher(CompressedImage, '/cv_compressed', 10)
+        #self.cv_pub = self.create_publisher(Image, '/cv', 10)
         self.bridge = CvBridge()
 
         # target in terms of horizontal pixel location
         self.target = -1
         
         
-        timer_period = 0.5  # seconds
+        timer_period = 0.1  # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
     def timer_callback(self):
@@ -38,11 +39,15 @@ class MovementHandler(Node):
             twist.linear.x = 0.0
             twist.angular.z = 0.0
         else:
-            twist.linear.x = 0.5
+            # slower speed on non sim
+            #twist.linear.x = 0.5
+            twist.linear.x = 0.05
 
             # angle is between -1 and 1
             angle = (320 - self.target) / 320
-            twist.angular.z = angle
+
+            # scale down 
+            twist.angular.z = angle / 4
         
         self.publisher_.publish(twist)
         self.get_logger().info(f'Publishing: Linear {twist.linear.x} Angular {twist.angular.z}')
@@ -64,9 +69,19 @@ class MovementHandler(Node):
         hsv = cv2.cvtColor(cv_image, cv2.COLOR_BGR2HSV)
         
         # Red Tracking
-        redLowMask = (0,5,50)
-        redHighMask = (10, 255, 255)
-        mask = cv2.inRange(hsv, redLowMask, redHighMask)
+        redLowMask1 = (0, 50, 50)
+        redHighMask1 = (10, 255, 255)
+        mask1 = cv2.inRange(hsv, redLowMask1, redHighMask1)
+
+        redLowMask2 = (170, 50, 50)
+        redHighMask2 = (180, 255, 255)
+        mask2 = cv2.inRange(hsv, redLowMask2, redHighMask2)
+
+        mask = cv2.addWeighted(mask1, 1.0, mask2, 1.0, 0.0)
+
+        #greenLowMask= (90, 50, 50)
+        #greenHighMask= (150, 255, 255)
+        #mask = cv2.inRange(hsv, greenLowMask, greenHighMask)
         
         # Perform erosion and dilation in the image (in 11x11 pixels squares) in order to reduce the "blips" on the mask
         mask = cv2.erode(mask, np.ones((11, 11),np.uint8), iterations=2)
@@ -99,9 +114,14 @@ class MovementHandler(Node):
         # End of color tracking
 
         # convert to compressed image and publish
-        #compressed = self.bridge.cv2_to_compressed_imgmsg(cv_image)
-        compressed = self.bridge.cv2_to_imgmsg(cv_image)
-        self.cv_pub.publish(compressed)
+        #compressed = self.bridge.cv2_to_compressed_imgmsg(mask)
+        #compressed.header.frame_id = 'camera'
+        #img_mask = self.bridge.cv2_to_imgmsg(mask)
+        #self.cv_pub_compressed.publish(compressed)
+        #self.cv_pub.publish(img_mask)
+
+    def image_callback_test(self, image):
+        self.get_logger().info(f'Received: Image')
 
 
 

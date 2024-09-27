@@ -62,10 +62,21 @@ def generate_launch_description():
         )
     )
 
+    camera_node = Node(
+        package='camera_ros',
+        executable='camera_node',
+        parameters=[{
+            "width": 640,
+            "height": 480,
+            "format": "BGR888"
+        }]
+    )
+
     # Launch!
     return LaunchDescription([
         rsp,
         delayed_controller_manager,
         delayed_diff_cont_spawner,
         delayed_joint_broad_spawner,
+        camera_node
     ])
